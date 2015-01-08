@@ -26,11 +26,14 @@ import SocketServer
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+from HTTPLib import HTTPRequest, HTTPResponse
 
 class MyWebServer(SocketServer.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
+        # create HTTP request object
+        self.http_request = HTTPRequest(self.data)
         print ("Got a request of: %s\n" % self.data)
         self.request.sendall("OK")
 
