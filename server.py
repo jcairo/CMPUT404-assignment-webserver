@@ -27,15 +27,28 @@ import SocketServer
 # try: curl -v -X GET http://127.0.0.1:8080/
 
 from HTTPLib import HTTPRequest, HTTPResponse
+import os
+ROOT = 'www'
 
 class MyWebServer(SocketServer.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        # create HTTP request object
-        self.http_request = HTTPRequest(self.data)
+        http_request = HTTPRequest(self.data, ROOT)
+        http_response = HTTPResponse(http_request.file_path)
+
+        self.abs_server_root = os.path.realpath(ROOT)
+        print ("server root: " + self.abs_server_root)
+        print ("file path request: " + http_request.file_path)
+
+        # ensure requested file/folder is in the server root directory
+        if not os.path.commonprefix([ROOT, http_request.file_path]) \
+                            == ROOT:
+            self.request.sendall(http_response.build_404_response(http_request.file_path)
+
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall("OK")
+        self.request.sendall(http_response.generate('200', http_request.file_path))
+        self.request.sendall(http_response.generate())
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
