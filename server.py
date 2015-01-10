@@ -35,15 +35,10 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        http_request = HTTPRequest(self.data, ROOT)
-        http_response = HTTPResponse(http_request.file_path, http_request)
-        self.abs_root = os.path.realpath(ROOT)
-        # ensure requested file/folder is in the server root directory
-        print ("http_request file path: " + http_request.file_path)
-        if not os.path.commonprefix([self.abs_root, http_request.file_path]) == self.abs_root:
-            self.request.sendall(http_response.build_404_response())
-
         print ("Got a request of: %s\n" % self.data)
+        http_request = HTTPRequest(self.data, ROOT)
+        abs_server_root = os.path.realpath(ROOT)
+        http_response = HTTPResponse(http_request.file_path, http_request, abs_server_root)
         self.request.sendall(http_response.generate())
 
 if __name__ == "__main__":
