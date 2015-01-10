@@ -45,7 +45,7 @@ class HTTPResponse(object):
     def build_dir_response(self):
         self.headers = self.get_headers('text/html', 200)
         self.line_break = '\r\n'
-        self.body = str(os.listdir(self.abs_URI_path))
+        self.body = self.build_file_links(os.listdir(self.abs_URI_path))
         return self.headers + self.line_break + self.body
 
     def build_file_response(self):
@@ -72,6 +72,12 @@ class HTTPResponse(object):
         headers += 'Accept-Ranges: bytes\r\n'
         headers += 'Content-Type: ' + content_type + '\r\n'
         return headers
+
+    def build_file_links(self, file_list):
+        file_contents_html = ''
+        for el in file_list:
+            file_contents_html += '<a href=/' + el + '/>' + el + '<a>' + '<br>'
+        return file_contents_html
 
     def get_content_type(self, abs_URI_path):
         self.file_type = abs_URI_path.split('.')[-1]
