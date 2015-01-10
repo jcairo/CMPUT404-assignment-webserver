@@ -2,13 +2,13 @@ import SocketServer
 # coding: utf-8
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,26 +28,22 @@ import SocketServer
 
 from HTTPLib import HTTPRequest, HTTPResponse
 import os
+import pdb
 ROOT = 'www'
 
 class MyWebServer(SocketServer.BaseRequestHandler):
-    
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         http_request = HTTPRequest(self.data, ROOT)
-        http_response = HTTPResponse(http_request.file_path)
-
-        self.abs_server_root = os.path.realpath(ROOT)
-        print ("server root: " + self.abs_server_root)
-        print ("file path request: " + http_request.file_path)
-
+        http_response = HTTPResponse(http_request.file_path, http_request)
+        self.abs_root = os.path.realpath(ROOT)
         # ensure requested file/folder is in the server root directory
-        if not os.path.commonprefix([ROOT, http_request.file_path]) \
-                            == ROOT:
-            self.request.sendall(http_response.build_404_response(http_request.file_path)
+        print ("http_request file path: " + http_request.file_path)
+        if not os.path.commonprefix([self.abs_root, http_request.file_path]) == self.abs_root:
+            self.request.sendall(http_response.build_404_response())
 
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(http_response.generate('200', http_request.file_path))
         self.request.sendall(http_response.generate())
 
 if __name__ == "__main__":
