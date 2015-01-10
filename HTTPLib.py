@@ -5,12 +5,28 @@ import os
 import pdb
 
 class HTTPResponse(object):
-    def __init__(self, requested_URI_abspath, abs_server_root):
+    def __init__(self, requested_URI_abspath, abs_server_root, request):
         # ensure request is within root folder
         self.abs_URI_path = requested_URI_abspath
         self.abs_server_root = abs_server_root
+        
+        # parse the first line of the http request
+        try:
+            self.HTTP_req_method, self.req_rel_filepath, self.HTTP_req_version =  request.splitlines()[0].split()
+        except IndexError as e:
+            print e.message
 
     def generate(self):
+        # ensure valid http request line
+        if self.HTTP_req_version != 'HTTP/1.1' and self.HTTP_req_version != 'HTTP/1.0':
+            return self.build_404_response()
+
+        if self.req_rel_filepath == None:
+            return self.build_404_response()
+        
+        if self.HTTP_req_method != 'GET':
+            return self.build_404_response()
+
         # determine whether file is in server root dir
         if not os.path.commonprefix([self.abs_server_root, self.abs_URI_path]) == self.abs_server_root: 
             return self.build_404_response()
