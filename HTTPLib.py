@@ -17,7 +17,6 @@ import re
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import os
 import pdb
 
@@ -60,7 +59,13 @@ class HTTPResponse(object):
         return response
 
     def build_dir_response(self):
-        self.headers = self.get_headers('text/html', 200)
+        # check whether requested directory has been formatted
+        # properly with a backslash. If not 302 redirect.
+        if self.abs_URI_path[-1] != '/':
+            redirected_url = self.abs_URI_path + '/'
+            self.headers = self.get_headers('text/html', 302, redirected_url)
+        else:
+            self.headers = self.get_headers('text/html', 200)
         self.line_break = '\r\n'
         self.body = self.build_file_links(os.listdir(self.abs_URI_path))
         return self.headers + self.line_break + self.body
@@ -78,12 +83,15 @@ class HTTPResponse(object):
         self.body = "Nothin here"
         return self.headers + self.line_break + self.body
 
-    def get_headers(self, content_type, code):
+    def get_headers(self, content_type, code, redirected_url=None):
         print ("Content Type: " + content_type)
         if code == 200:
             headers = 'HTTP/1.1 200 OK\r\n'
         if code == 404:
             headers = "HTTP/1.1 404 Not Found\r\n"
+        if code == 302:
+            headers = 'HTTP/1.1 302 Found\r\n'
+            headers += redirected_url + '\r\n' 
         headers += 'Connection: close\r\n'
         headers += 'Server: CMPUT404\r\n'
         headers += 'Accept-Ranges: bytes\r\n'
