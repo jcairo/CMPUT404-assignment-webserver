@@ -26,6 +26,7 @@ class TestYourWebserver(unittest.TestCase):
         self.baseurl = baseurl
 
     def test_get_root(self):
+        import pdb; pdb.set_trace()
         url = self.baseurl + "/"
         req = urllib2.urlopen(url, None, 3)
         self.assertTrue( req.getcode()  == 200 , "200 OK Not FOUND!")
