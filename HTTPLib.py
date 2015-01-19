@@ -1,8 +1,8 @@
-# coding: utf-8
 import re
+# coding: utf-8
 
 #    Copyright 2015 Jonathan Cairo
-
+#    
 #    This file is part of CMPUT404-assignment-webserver
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,16 +17,16 @@ import re
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
 import pdb
 
 class HTTPResponse(object):
-    def __init__(self, requested_URI_abspath, abs_server_root, request, rel_file_path, host_name):
+    def __init__(self, requested_URI_abspath, abs_server_root, request):
         # ensure request is within root folder
-        self.req_rel_filepath = rel_file_path
         self.abs_URI_path = requested_URI_abspath
         self.abs_server_root = abs_server_root
-        self.host_name = host_name
+        
         # parse the first line of the http request
         try:
             self.HTTP_req_method, self.req_rel_filepath, self.HTTP_req_version =  request.splitlines()[0].split()
@@ -60,19 +60,10 @@ class HTTPResponse(object):
         return response
 
     def build_dir_response(self):
-        # check whether requested directory has been formatted
-        # properly with a backslash. If not 302 redirect.
-        import pdb; pdb.set_trace()
-        if self.req_rel_filepath[-1] != '/':
-            redirected_url = self.req_rel_filepath + '/'
-            self.headers = self.get_headers('text/html', 307, redirected_url)
-            self.line_break = '\r\n'
-            return self.headers + self.line_break
-        else:
-            self.headers = self.get_headers('text/html', 200)
-            self.line_break = '\r\n'
-            self.body = self.build_file_links(os.listdir(self.abs_URI_path))
-            return self.headers + self.line_break + self.body
+        self.headers = self.get_headers('text/html', 200)
+        self.line_break = '\r\n'
+        self.body = self.build_file_links(os.listdir(self.abs_URI_path))
+        return self.headers + self.line_break + self.body
 
     def build_file_response(self):
         f = open(self.abs_URI_path, 'rb')
@@ -87,16 +78,12 @@ class HTTPResponse(object):
         self.body = "Nothin here"
         return self.headers + self.line_break + self.body
 
-    def get_headers(self, content_type, code, redirected_url=None):
+    def get_headers(self, content_type, code):
         print ("Content Type: " + content_type)
         if code == 200:
             headers = 'HTTP/1.1 200 OK\r\n'
         if code == 404:
             headers = "HTTP/1.1 404 Not Found\r\n"
-        if code == 307:
-            headers = 'HTTP/1.1 307 Found\r\n'
-            headers += 'Location: ' + redirected_url + '\r\n'
-            return headers
         headers += 'Connection: close\r\n'
         headers += 'Server: CMPUT404\r\n'
         headers += 'Accept-Ranges: bytes\r\n'
@@ -130,10 +117,10 @@ class HTTPRequest(object):
             print e.message
 
         self.abs_URI_path = os.path.realpath(root + self.rel_filepath)
+
         # regex snippet for parsing headers from:
         # http://stackoverflow.com/questions/4685217/parse-raw-http-headers
         # January 8, 2015
         # Author: mouad
         self.hdr_dict = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n",\
                                 request))
-        self.host_name = self.hdr_dict['Host']

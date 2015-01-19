@@ -1,5 +1,5 @@
-# coding: utf-8
 import SocketServer
+# coding: utf-8
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 #
@@ -38,7 +38,7 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         print ("Got a request of: %s\n" % self.data)
         http_request = HTTPRequest(self.data, ROOT)
         abs_server_root = os.path.realpath(ROOT)
-        http_response = HTTPResponse(http_request.abs_URI_path, abs_server_root, self.data, http_request.rel_filepath, http_request.host_name)
+        http_response = HTTPResponse(http_request.abs_URI_path, abs_server_root, self.data)
         self.request.sendall(http_response.generate())
 
 if __name__ == "__main__":
