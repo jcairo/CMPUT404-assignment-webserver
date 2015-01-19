@@ -1,5 +1,5 @@
-import re
 # coding: utf-8
+import re
 
 #    Copyright 2015 Jonathan Cairo
 #    
