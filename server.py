@@ -35,10 +35,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
         http_request = HTTPRequest(self.data, ROOT)
         abs_server_root = os.path.realpath(ROOT)
-        http_response = HTTPResponse(http_request.abs_URI_path, abs_server_root, self.data)
+        http_response = HTTPResponse(http_request.abs_URI_path, abs_server_root, self.data, http_request.host_name)
         self.request.sendall(http_response.generate())
 
 if __name__ == "__main__":

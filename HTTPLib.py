@@ -22,11 +22,11 @@ import os
 import pdb
 
 class HTTPResponse(object):
-    def __init__(self, requested_URI_abspath, abs_server_root, request):
+    def __init__(self, requested_URI_abspath, abs_server_root, request, host_name):
         # ensure request is within root folder
         self.abs_URI_path = requested_URI_abspath
         self.abs_server_root = abs_server_root
-        
+        self.host_name = host_name
         # parse the first line of the http request
         try:
             self.HTTP_req_method, self.req_rel_filepath, self.HTTP_req_version =  request.splitlines()[0].split()
@@ -60,6 +60,11 @@ class HTTPResponse(object):
         return response
 
     def build_dir_response(self):
+        # ensure requested path ends with slash otherwise redirect
+        if self.req_rel_filepath[-1] != '/':
+            redirected_url = self.req_rel_filepath + '/'
+            self.headers = self.get_headers('text/html', 302, redirected_url)
+            return self.headers + '\r\n'
         self.headers = self.get_headers('text/html', 200)
         self.line_break = '\r\n'
         self.body = self.build_file_links(os.listdir(self.abs_URI_path))
@@ -78,12 +83,14 @@ class HTTPResponse(object):
         self.body = "Nothin here"
         return self.headers + self.line_break + self.body
 
-    def get_headers(self, content_type, code):
-        print ("Content Type: " + content_type)
+    def get_headers(self, content_type, code, redirected_url=None):
         if code == 200:
             headers = 'HTTP/1.1 200 OK\r\n'
         if code == 404:
             headers = "HTTP/1.1 404 Not Found\r\n"
+        if code == 302:
+            headers = 'HTTP/1.1 302 Found\r\n'
+            headers += 'Location: ' + redirected_url + '\r\n'
         headers += 'Connection: close\r\n'
         headers += 'Server: CMPUT404\r\n'
         headers += 'Accept-Ranges: bytes\r\n'
@@ -124,3 +131,4 @@ class HTTPRequest(object):
         # Author: mouad
         self.hdr_dict = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n",\
                                 request))
+        self.host_name = self.hdr_dict['Host']
